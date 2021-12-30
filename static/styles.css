@@ -231,7 +231,7 @@ h2{
 
 #description_input{
     resize: none;
-    width: 65%;
+    width: 60%;
     height: 125px;
 }
 
@@ -305,4 +305,22 @@ h2{
 
 #buttons-container{
     display: none;
+}
+
+#date_error, #description_error, #title_error{
+    color:#DD4A48;
+    font-size: .6rem;
+    margin-left: 10px;
+}
+
+#not_found_error{
+    display: none;
+    color:#DD4A48;
+    margin-right: 110px;
+    text-align: center;
+}
+
+.date-container, .title_content, .description_content{
+    align-items: center;
+    display: flex;
 }

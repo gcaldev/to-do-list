@@ -18,8 +18,12 @@
                     <form action="" id="new-task-form" method="post">
                         {% csrf_token %}
                         <input type="hidden" name = "edit_id" id = "edit_id">
-                        <input type="text" name="title_input" id="title_input" placeholder="Title">
-                        <textarea name="description_input" id="description_input" placeholder="Description"></textarea>
+                        <div class="title_content">
+                            <input type="text" name="title_input" id="title_input" placeholder="Title">
+                        </div>
+                        <div class="description_content">
+                            <textarea name="description_input" id="description_input" placeholder="Description"></textarea>
+                        </div>
                         <div class="activity-container">
                             <label for="new-task-form">Activity:</label>
                             <div class="activity-selection">
@@ -33,7 +37,7 @@
                         </div>
                         <div class="date-container">
                             <label form="new-task-form">Date to be completed:</label>
-                                <input type="date" name="date_input" id="date_input">
+                            <input type="date" name="date_input" id="date_input">
                         </div>
                         <div class = "completed-container">
                             <label form="search-form">Already Done</label>
@@ -55,10 +59,11 @@
                     <form action="" class="search-form">
                         <div class="search-bar">
                             <input type="text" name="specified_task" id="specified_task" placeholder="Search a task">
-                            <button onclick = "OpenModal()" id = "add-task" type = "button"><i class="fas fa-plus-square"></i></button>                    
+                            <button onclick = "OpenWithInput()" id = "add-task" type = "button"><i class="fas fa-plus-square"></i></button>                    
                         </div>
-                        <button type = "button" id="search-task-btn" onclick="SearchTask()">Search</button>
+                        <button type = "submit" id="search-task-btn">Search</button>
                     </form>
+                <h3 id = "not_found_error"> There isn't a task with that title</h3>
                 </div>
                 <input type="hidden" id = "selected_id" value="">
                 <ul>
@@ -77,204 +82,7 @@
             </div>
         </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script>
-
-
-
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
-
-/*
-        FORM METODO
-        $(".task-interaction").submit(function(e){
-            e.preventDefault();
-            const task_id = $(this).attr("id");
-            const url = $(this).attr("action");
-            $.ajax({
-                type:"POST",
-                url : url,
-                data: {
-                    "task_id": task_id,
-                    "csrfmiddlewaretoken":$('input[name=csrfmiddlewaretoken]').val()
-                },
-                success: function(response) {
-                    console.log(response);    
-                },
-            })
-            clicked_task = document.getElementById("task-" + task_id);
-            clicked_task.remove();
-            
-        })*/
-
-    $(".del-btn, #remove-task-btn").click(function(e){
-        e.preventDefault();
-        const task_id = $(this).val();
-        $.ajax({
-            type:"POST",
-            url : "/taskRemove/",
-            data: {
-                "task_id": task_id,
-                "csrfmiddlewaretoken":csrftoken
-            },
-            success: function(response) {
-                console.log(response);    
-            },
-        })
-        clicked_task = document.getElementById("task-" + task_id);
-        clicked_task.remove();
-    })
-
-
-    $(".config-btn").click(function(e){
-        e.preventDefault();
-        const task_id = $(this).val();
-        $.ajax({
-            type:"POST",
-            url : "/config_task/",
-            data: {
-                "task_id": task_id,
-                "csrfmiddlewaretoken":csrftoken
-            },
-            success: function(response) {
-                OpenModal();
-                document.getElementById("save-task").style.display = "none";
-                document.getElementById("buttons-container").style.display = "block";
-                document.getElementById("title_input").value = response["title"];
-                document.getElementById("description_input").value = response["description"];
-                document.getElementById("activity_type").value = response["activity"];
-                document.getElementById("date_input").value = response["date"];
-                document.getElementById("remove-task-btn").value = response["id"];
-                document.getElementById("edit_id").value = response["id"];
-                if (response["is_done"] == true){
-                    document.getElementById("is_done").checked = true;
-                }
-                title_is_valid = true;
-                desc_is_valid = true;
-                date_is_valid = true;
-            },
-        })
-    })
-
-    window.onclick = function(e){
-        let modal = document.getElementsByClassName("modal-container")[0];
-        if(e.target == modal){
-            CloseModal();
-        }
-    }
-    function OpenModal(){
-        let modal = document.getElementsByClassName("modal-container")[0];
-        modal.style.display = "block";
-    }
-
-    function CloseModal(){
-        document.getElementsByClassName("modal-container")[0].style.display = "none";
-        title_elem.style.outline = "none";
-        desc_elem.style.outline = "none";
-        date_elem.style.outline = "none";
-
-        title_is_valid = false;
-        desc_is_valid = false;
-        date_is_valid = false;
-
-        document.getElementById("title_input").value = "";
-        document.getElementById("description_input").value = "";
-        document.getElementById("activity_type").value = 0;
-        document.getElementById("date_input").value = "";
-        document.getElementById("edit_id").value = "";
-        document.getElementById("is_done").checked = false;
-        if(document.getElementById("buttons-container").style.display == "block"){
-            document.getElementById("buttons-container").style.display = "none";
-            document.getElementById("save-task").style.display = "block";
-        }
-    }
-
-    const title_elem = document.getElementById("title_input");
-    const desc_elem = document.getElementById("description_input");
-    const date_elem = document.getElementById("date_input");
-
-    title_elem.addEventListener("input", FormValidation);
-    desc_elem.addEventListener("input", FormValidation);
-    date_elem.addEventListener("input", FormValidation);
-    var title_is_valid = false;
-    var desc_is_valid = false;
-    var date_is_valid = false;
-    const TITLE_MAX_LENGTH = 100;
-    const TITLE_MIN_LENGTH = 5;
-    const DESC_MAX_LENGTH = 1000;
-    const DESC_MIN_LENGTH = 5;
-    
-
-    function FormValidation(e){
-        if(e.target.name == "title_input"){
-            if(e.target.value.length < TITLE_MAX_LENGTH && e.target.value.length > TITLE_MIN_LENGTH){
-                title_is_valid = true;
-                e.target.style.outline = "none";
-            } else {
-                title_is_valid = false;
-                e.target.style.outline = "1px solid #DD4A48";
-            }
-        } else if (e.target.name == "description_input"){
-            if(e.target.value.length < DESC_MAX_LENGTH && e.target.value.length > DESC_MIN_LENGTH){
-                desc_is_valid = true;
-                e.target.style.outline = "none";
-            } else {
-                desc_is_valid = false;
-                e.target.style.outline = "1px solid #DD4A48";
-            }
-        } else if (e.target.name == "date_input"){
-            if(e.target.value == ""){
-                date_is_valid = false;
-                e.target.style.outline = "1px solid #DD4A48";    
-            } else {
-                date_is_valid = true;
-                e.target.style.outline = "none";    
-            }
-        }
-    }
-
-    function SearchTask(){
-        tasks = document.getElementsByClassName("uploaded-task");
-        input = document.getElementById("specified_task").value;
-        for(let i = 0; i < tasks.length; i++){
-            if (input == tasks[i].querySelector(".task-title").innerHTML){
-                tasks[i].querySelector(".config-btn").click();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function SubmitForm(){
-        let valid_operation = true;
-        if(!title_is_valid){
-            valid_operation = false;
-        }
-        if(!desc_is_valid){
-            valid_operation = false;
-        }
-        if(!date_is_valid){
-            valid_operation = false;
-        }
-        if(valid_operation){
-            document.getElementById("new-task-form").submit();
-        }
-    }
-</script>
+    <script src="{% static './interaction.js' %}"></script>
 
 </body>
 </html>
